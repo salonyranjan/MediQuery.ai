@@ -1,26 +1,31 @@
-# Use Bullseye - it's newer and more stable than Buster
-FROM python:3.10-slim-bullseye
+# Use Bookworm (Debian 12) to ensure active, non-archived repositories
+FROM python:3.10-slim-bookworm
 
-# Set the working directory
 WORKDIR /app
 
-# Prevent Python from buffering logs
+# Prevent Python from buffering logs (best for AWS/CloudWatch logs)
 ENV PYTHONUNBUFFERED=1
 
-# --- STEP 1: SKIP APT-GET ENTIRELY ---
-# We are removing the 'RUN apt-get' block because 99% of 
-# LangChain/Groq deps don't need a C compiler anymore.
+# Install build tools - Bookworm repos will now resolve correctly
+RUN apt-get update --fix-missing && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# --- STEP 2: INSTALL DEPENDENCIES ---
+# Copy requirements first for better Docker layer caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip
+
+# Upgrade pip and install dependencies
+RUN pip install --no-cache-dir --upgrade pip==26.0.1 setuptools wheel
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- STEP 3: COPY CODE ---
+# Copy the rest of the application
 COPY . .
 
-# Match your AWS/GitHub port
+# Match the port in your GitHub Actions YAML and AWS Security Group
 EXPOSE 8080
 
-# Start the bot
+# Start the Flask app
 CMD ["python3", "app.py"]
