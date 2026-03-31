@@ -1,35 +1,26 @@
-# Use Bullseye (Debian 11) to avoid EOL 'Buster' repository errors (404)
+# Use Bullseye - it's newer and more stable than Buster
 FROM python:3.10-slim-bullseye
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Prevent Python from buffering logs (essential for CloudWatch/GitHub logs)
+# Prevent Python from buffering logs
 ENV PYTHONUNBUFFERED=1
 
-# Install essential build tools with a retry for network stability
-# We use --fix-missing to handle temporary Debian mirror glitches
-RUN apt-get update --fix-missing || (sleep 5 && apt-get update --fix-missing) && \
-    apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# --- STEP 1: SKIP APT-GET ENTIRELY ---
+# We are removing the 'RUN apt-get' block because 99% of 
+# LangChain/Groq deps don't need a C compiler anymore.
 
-# Copy requirements first to leverage Docker layer caching
+# --- STEP 2: INSTALL DEPENDENCIES ---
 COPY requirements.txt .
-
-# Upgrade pip and install dependencies
-# We use --no-cache-dir to keep the final image size small for AWS EC2
-RUN pip install --no-cache-dir --upgrade pip==26.0.1 setuptools wheel
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy all project files (including app.py and your data folder)
+# --- STEP 3: COPY CODE ---
 COPY . .
 
-# Expose port 8080 to match your GitHub YAML and Flask config
+# Match your AWS/GitHub port
 EXPOSE 8080
 
-# Start the Flask application
-# Using 'python3' to ensure compatibility with the slim-bullseye image
+# Start the bot
 CMD ["python3", "app.py"]
