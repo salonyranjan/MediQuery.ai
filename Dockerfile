@@ -1,4 +1,3 @@
-# Changed from slim-buster to slim-bullseye to fix the 404 Repository error
 FROM python:3.10-slim-bullseye
 
 WORKDIR /app
@@ -7,8 +6,7 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1
 
 # Install only the essentials for LangChain/AI deps
-# This will now work because Bullseye repositories are active
-RUN apt-get update && \
+RUN apt-get update --fix-missing && \
     apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -28,4 +26,5 @@ COPY . .
 # Match the port in your GitHub YAML/AWS setup
 EXPOSE 8080
 
+# Use python3 to match the slim image naming
 CMD ["python3", "app.py"]
