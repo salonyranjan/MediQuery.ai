@@ -8,7 +8,21 @@
 **MediQuery.ai** is a professional-grade medical assistant built using a **Retrieval-Augmented Generation (RAG)** architecture. It answers questions based on your indexed medical documents instead of raw LLM hallucinations, improving accuracy and trustworthiness.
 
 ---
+## 📊 Live Project Dashboard
 
+Real-time status of the MediQuery.ai ecosystem:
+
+| Service | Status | Description |
+| :--- | :--- | :--- |
+| **CI/CD Pipeline** | ![Build Status](https://github.com/salonyranjan/MediQuery.ai/actions/workflows/cicd.yaml/badge.svg) | Automated Build & Deploy via GitHub Actions |
+| **Backend API** | ![API Status](https://img.shields.io/badge/API-Online-success) | Flask Server running on AWS EC2 |
+| **Vector DB** | ![Pinecone](https://img.shields.io/badge/Pinecone-Connected-blue) | Medical Index: `medical-chatbot` |
+| **Inference Engine** | ![Groq](https://img.shields.io/badge/Groq-Llama3.3--70B-orange) | Real-time Neural Inference |
+| **Deployment** | [![AWS Deployment](https://img.shields.io/badge/Deployed%20on-AWS%20EC2-232F3E?logo=amazon-aws&logoColor=white)](http://13.60.62.104:8080) | Live Production Environment |
+
+> **Live Production URL:** [http://13.60.62.104:8080](http://13.60.62.104:8080)
+
+---
 ## 📸 Demo Showcase
 
 Modern, responsive UI with **Dark Mode** toggle for optimal readability.
