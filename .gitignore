@@ -1,0 +1,6 @@
+env/
+medibot_env/
+.env
+__pycache__/
+*.pyc
+venv/
