@@ -20,14 +20,12 @@
 <img src="https://img.shields.io/badge/AWS_EC2+ECR-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" />
 <img src="https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" />
 <img src="https://img.shields.io/badge/Mobile-Responsive-10b981?style=for-the-badge" />
-<img src="https://img.shields.io/badge/License-MIT-06b6d4?style=for-the-badge" />
 
 <br/>
 
 <img src="https://img.shields.io/github/stars/salonyranjan/MediQuery.ai?style=for-the-badge&color=0ea5e9" />
 <img src="https://img.shields.io/github/forks/salonyranjan/MediQuery.ai?style=for-the-badge&color=06b6d4" />
 <img src="https://img.shields.io/github/last-commit/salonyranjan/MediQuery.ai?style=for-the-badge&color=10b981" />
-<img src="https://github.com/salonyranjan/MediQuery.ai/actions/workflows/cicd.yaml/badge.svg" alt="CI/CD" />
 
 <br/><br/>
 
