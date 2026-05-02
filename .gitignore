@@ -1,6 +1,39 @@
+# --- Virtual Environments ---
+# Excluding all common virtual env names found in your project
 env/
+venv/
+venv_medical/
 medibot_env/
+tmp_install/
+
+# --- Sensitive Data ---
+# Never push your keys to GitHub
 .env
+
+# --- Python Artifacts ---
 __pycache__/
 *.pyc
-venv/
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+build/
+dist/
+sdist/
+.installed.cfg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Research & Notebooks ---
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+# If you want to keep the trials.ipynb but ignore its data/checkpoints
+research/.ipynb_checkpoints/
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Deployment / Docker ---
+# If you want to ignore local docker logs
+*.log
