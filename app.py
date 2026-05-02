@@ -1,70 +1,78 @@
-from flask import Flask, render_template, jsonify, request
+import streamlit as st
+import os
 from src.helper import download_hugging_face_embeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_groq import ChatGroq 
-from langchain_classic.chains import create_retrieval_chain
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
-from src.prompt import *
-import os
+from src.prompt import system_prompt
 
-# 1. Initialize App and Load Environment
-app = Flask(__name__)
-load_dotenv()
+# 1. Page Configuration
+st.set_page_config(page_title="MediQuery.ai", page_icon="🏥")
+st.title("🏥 MediQuery.ai: Medical Assistant")
 
-PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+# 2. Load Environment Variables (Using st.secrets for Cloud)
+PINECONE_API_KEY = st.secrets.get("PINECONE_API_KEY")
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY")
 
-# Ensure keys are set as environment variables for LangChain tools
+if not PINECONE_API_KEY or not GROQ_API_KEY:
+    st.error("API Keys not found! Please add them to Streamlit Secrets.")
+    st.stop()
+
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 
-# 2. Load Core Components
-embeddings = download_hugging_face_embeddings()
-index_name = "medical-chatbot" 
+# 3. Cache Core Components (Prevents reloading on every interaction)
+@st.cache_resource
+def init_rag():
+    embeddings = download_hugging_face_embeddings()
+    index_name = "medical-chatbot" 
 
-# Connect to Pinecone
-docsearch = PineconeVectorStore.from_existing_index(
-    index_name=index_name,
-    embedding=embeddings
-)
+    docsearch = PineconeVectorStore.from_existing_index(
+        index_name=index_name,
+        embedding=embeddings
+    )
 
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+    retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
 
-# 3. Setup LLM (Groq)
-chatModel = ChatGroq(
-    model="llama-3.3-70b-versatile", 
-    groq_api_key=GROQ_API_KEY,
-    temperature=0.4
-)
+    chatModel = ChatGroq(
+        model="llama-3.3-70b-versatile", 
+        groq_api_key=GROQ_API_KEY,
+        temperature=0.4
+    )
 
-# 4. Setup RAG Chain
-prompt = ChatPromptTemplate.from_messages([
-    ("system", system_prompt),
-    ("human", "{input}"),
-])
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "{input}"),
+    ])
 
-question_answer_chain = create_stuff_documents_chain(chatModel, prompt)
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+    question_answer_chain = create_stuff_documents_chain(chatModel, prompt)
+    return create_retrieval_chain(retriever, question_answer_chain)
 
-# 5. Routes
-@app.route("/")
-def index():
-    return render_template('chat.html')
+rag_chain = init_rag()
 
-@app.route("/get", methods=["GET", "POST"])
-def chat():
-    msg = request.form.get("msg")
-    if not msg:
-        return "Please enter a message."
-        
-    print(f"User Input: {msg}")
+# 4. Chat History Initialization
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# 5. Display Chat Interface
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 6. User Input Logic
+if prompt := st.chat_input("How can I help you today?"):
+    # Add user message to history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Generate RAG Response
+    with st.chat_message("assistant"):
+        with st.spinner("Consulting medical database..."):
+            response = rag_chain.invoke({"input": prompt})
+            answer = response["answer"]
+            st.markdown(answer)
     
-    # Process through RAG
-    response = rag_chain.invoke({"input": msg})
-    
-    print("Response : ", response["answer"])
-    return str(response["answer"])
-
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    # Add assistant response to history
+    st.session_state.messages.append({"role": "assistant", "content": answer})
